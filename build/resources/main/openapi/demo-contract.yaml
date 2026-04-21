@@ -1,0 +1,46 @@
+openapi: 3.0.3
+info:
+  title: Demo Customer API
+  version: 1.0.0
+paths:
+  /customers/{customerId}:
+    get:
+      operationId: getCustomerById
+      summary: Get customer by id
+      description: Returns the customer identified by the provided customerId.
+      tags: [customers]
+      x-handler: customers.getById
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Internal customer identifier.
+      responses:
+        '200':
+          description: OK
+  /orders:
+    get:
+      operationId: searchOrders
+      summary: Search orders
+      description: Search orders using customer document and status.
+      tags: [orders]
+      x-handler: orders.search
+      parameters:
+        - name: customerDocument
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Customer document number.
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [CREATED, PAID, CANCELLED]
+          description: Order status.
+      responses:
+        '200':
+          description: OK

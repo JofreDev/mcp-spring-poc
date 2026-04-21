@@ -1,0 +1,80 @@
+---
+tools:
+- sourceOperationId: "getCustomerById"
+  name: "getCustomerById"
+  title: "Get customer by id"
+  description: "Returns the customer identified by the provided customerId."
+  inputSchema:
+    type: "object"
+    additionalProperties: false
+    properties:
+      customerId:
+        type: "string"
+        description: "Internal customer identifier."
+    required:
+    - "customerId"
+  outputSchema:
+    type: "object"
+    description: "Respuesta simplificada inferida desde OpenAPI para PoC"
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    idempotentHint: true
+    openWorldHint: false
+  binding:
+    handler: "customers.getById"
+    mode: "spring-bean"
+  excluded: false
+- sourceOperationId: "searchOrders"
+  name: "searchOrders"
+  title: "Search orders"
+  description: "Search orders using customer document and status."
+  inputSchema:
+    type: "object"
+    additionalProperties: false
+    properties:
+      customerDocument:
+        type: "string"
+        description: "Customer document number."
+      status:
+        type: "string"
+        description: "Order status."
+        enum:
+        - "CREATED"
+        - "PAID"
+        - "CANCELLED"
+    required: []
+  outputSchema:
+    type: "object"
+    description: "Respuesta simplificada inferida desde OpenAPI para PoC"
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    idempotentHint: true
+    openWorldHint: false
+  binding:
+    handler: "orders.search"
+    mode: "spring-bean"
+  excluded: false
+resources:
+- uri: "openapi://summary"
+  title: "OpenAPI Summary"
+  description: "Resumen básico del contrato OpenAPI cargado"
+  mimeType: "text/plain"
+  text: "title=Demo Customer API, version=1.0.0, paths=2"
+  excluded: false
+- uri: "openapi://operations/getCustomerById"
+  title: "OpenAPI Operation getCustomerById"
+  description: "Documentación breve de la operación getCustomerById"
+  mimeType: "text/plain"
+  text: "operationId=getCustomerById\nmethod=GET\npath=/customers/{customerId}\nsummary=Get\
+    \ customer by id\ndescription=Returns the customer identified by the provided\
+    \ customerId."
+  excluded: false
+- uri: "openapi://operations/searchOrders"
+  title: "OpenAPI Operation searchOrders"
+  description: "Documentación breve de la operación searchOrders"
+  mimeType: "text/plain"
+  text: "operationId=searchOrders\nmethod=GET\npath=/orders\nsummary=Search orders\n\
+    description=Search orders using customer document and status."
+  excluded: false

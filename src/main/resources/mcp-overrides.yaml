@@ -1,0 +1,45 @@
+tools:
+  getCustomerById:
+    title: Consultar cliente por ID
+    description: >
+      Consulta un cliente por su identificador exacto. Úsala cuando ya conoces
+      el customerId y requieres información puntual del cliente.
+    annotations:
+      readOnlyHint: true
+      destructiveHint: false
+      idempotentHint: true
+      openWorldHint: false
+
+  searchOrders:
+    title: Buscar órdenes
+    description: >
+      Busca órdenes por documento del cliente y por estado. Úsala cuando no
+      conoces un orderId exacto.
+    annotations:
+      readOnlyHint: true
+      destructiveHint: false
+      idempotentHint: true
+      openWorldHint: false
+
+resources:
+  openapi://summary:
+    title: Resumen del contrato
+    description: >
+      Resumen generado del contrato OpenAPI para dar contexto al modelo o al equipo.
+
+
+prompts:
+  - name: summarizeContract
+    title: "Resumir contrato"
+    description: "Genera un resumen del contrato OpenAPI cargado"
+    template: |
+      Resume el contrato OpenAPI para la audiencia {{audience}}.
+      Usa un tono {{tone}}.
+    excluded: false
+    arguments:
+      - name: audience
+        description: "Audiencia objetivo"
+        required: false
+      - name: tone
+        description: "Tono del resumen"
+        required: false
