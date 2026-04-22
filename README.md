@@ -30,9 +30,9 @@ OpenAPI -> GeneratedManifest -> Overrides -> EffectiveManifest -> ToolCallbackPr
 - Hace el binding final a **casos de uso Spring** a través de `OperationInvokerRegistry`.
 - Exporta snapshots YAML a `build/mcp-manifests/`.
 
-## Lo que dejé intencionalmente simple
+## Lo dejado intencionalmente simple
 
-- El `inputSchema` es suficientemente bueno para PoC, no exhaustivo para todos los esquemas OpenAPI.
+- El `inputSchema` es general, no exhaustivo para todos los esquemas OpenAPI.
 - El `requestBody` se modela de forma básica.
 - Los **resources** quedan generados y persistidos en el modelo, pero en este PoC la exposición runtime se centra en **tools**, que es la vía programática más directa y documentada en Spring AI.
 
