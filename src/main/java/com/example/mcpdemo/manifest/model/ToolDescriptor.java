@@ -26,7 +26,7 @@ public record ToolDescriptor(
                 inputSchema,
                 outputSchema,
                 annotations != null ? annotations.merge(override.annotations()) : override.annotations(),
-                override.binding() != null ? override.binding() : binding,
+                binding != null ? binding.merge(override.binding()) : override.binding(),
                 override.exclude() != null ? override.exclude() : excluded
         );
     }

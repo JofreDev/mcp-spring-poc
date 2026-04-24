@@ -6,6 +6,8 @@ public record ResourceDescriptor(
         String description,
         String mimeType,
         String text,
+        String uriTemplate,
+        BindingDescriptor binding,
         boolean excluded
 ) {
 
@@ -19,6 +21,8 @@ public record ResourceDescriptor(
                 override.description() != null ? override.description() : description,
                 override.mimeType() != null ? override.mimeType() : mimeType,
                 override.text() != null ? override.text() : text,
+                override.uriTemplate() != null ? override.uriTemplate() : uriTemplate,
+                binding != null ? binding.merge(override.binding()) : override.binding(),
                 override.exclude() != null ? override.exclude() : excluded
         );
     }

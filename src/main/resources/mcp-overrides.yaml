@@ -4,6 +4,14 @@ tools:
     description: >
       Consulta un cliente por su identificador exacto. Úsala cuando ya conoces
       el customerId y requieres información puntual del cliente.
+    binding:
+      handler: customers.getById
+      mode: spring-bean
+      options:
+        bean: customerQueryUseCase
+        method: getById
+        args:
+          - customerId
     annotations:
       readOnlyHint: true
       destructiveHint: false
@@ -15,8 +23,37 @@ tools:
     description: >
       Busca órdenes por documento del cliente y por estado. Úsala cuando no
       conoces un orderId exacto.
+    binding:
+      handler: orders.search
+      mode: spring-bean
+      options:
+        bean: orderQueryUseCase
+        method: search
+        args:
+          - customerDocument
+          - status
     annotations:
       readOnlyHint: true
+      destructiveHint: false
+      idempotentHint: true
+      openWorldHint: false
+
+  evaluateCustomerProfile:
+    title: Evaluar perfil de cliente
+    description: >
+      Evalúa un payload JSON complejo con información personal y financiera
+      para producir una clasificación de riesgo y recomendaciones de producto.
+    binding:
+      handler: customers.evaluateProfile
+      mode: spring-bean
+      options:
+        bean: customerProfileEvaluationUseCase
+        method: evaluate
+        args:
+          - body
+          - body
+    annotations:
+      readOnlyHint: false
       destructiveHint: false
       idempotentHint: true
       openWorldHint: false
@@ -26,6 +63,36 @@ resources:
     title: Resumen del contrato
     description: >
       Resumen generado del contrato OpenAPI para dar contexto al modelo o al equipo.
+    binding:
+      mode: spring-bean
+      options:
+        bean: customerStatusResourceUseCase
+        method: get
+        args:
+          - _uri
+
+  openapi://operations/searchOrders:
+    uriTemplate: openapi://operations/searchOrders{?customerDocument}
+    binding:
+      mode: spring-bean
+      options:
+        bean: customerStatusResourceUseCase
+        method: get
+        args:
+          - _uri
+          - customerDocument
+
+  openapi://operations/evaluateCustomerProfile:
+    uriTemplate: openapi://operations/evaluateCustomerProfile{?region,status}
+    binding:
+      mode: spring-bean
+      options:
+        bean: customerStatusResourceUseCase
+        method: get
+        args:
+          - _uri
+          - region
+          - status
 
 
 prompts:

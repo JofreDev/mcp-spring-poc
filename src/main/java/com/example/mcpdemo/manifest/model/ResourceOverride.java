@@ -5,6 +5,8 @@ public record ResourceOverride(
         String description,
         String mimeType,
         String text,
+        String uriTemplate,
+        BindingDescriptor binding,
         Boolean exclude
 ) {
 }

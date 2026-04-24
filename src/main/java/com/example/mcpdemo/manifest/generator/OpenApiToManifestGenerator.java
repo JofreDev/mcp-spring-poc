@@ -5,9 +5,11 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.media.ArraySchema;
+import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
+import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +32,8 @@ public class OpenApiToManifestGenerator {
                 "Resumen básico del contrato OpenAPI cargado",
                 "text/plain",
                 buildSummary(openAPI),
+                null,
+                null,
                 false
         ));
 
@@ -41,7 +45,7 @@ public class OpenApiToManifestGenerator {
             visitOperation("DELETE", path, pathItem.getDelete(), tools, resources);
         });
 
-        return new GeneratedManifest(tools, resources);
+        return new GeneratedManifest(sortTools(tools), sortResources(resources));
     }
 
     private void visitOperation(String httpMethod,
@@ -66,7 +70,7 @@ public class OpenApiToManifestGenerator {
                 buildInputSchema(operation),
                 buildOutputSchema(operation.getResponses()),
                 AnnotationsDescriptor.defaultsForHttpMethod(httpMethod),
-                new BindingDescriptor(handler, "spring-bean"),
+                new BindingDescriptor(handler, BindingDescriptor.MODE_REGISTRY, Map.of()),
                 false
         ));
 
@@ -76,8 +80,31 @@ public class OpenApiToManifestGenerator {
                 "Documentación breve de la operación " + operationId,
                 "text/plain",
                 buildOperationDoc(httpMethod, path, operation),
+                buildOperationResourceUriTemplate(operationId, operation),
+                null,
                 false
         ));
+    }
+
+    private String buildOperationResourceUriTemplate(String operationId, Operation operation) {
+        if (operation.getParameters() == null || operation.getParameters().isEmpty()) {
+            return null;
+        }
+
+        List<String> queryParameters = operation.getParameters().stream()
+                .filter(parameter -> "query".equalsIgnoreCase(parameter.getIn()))
+                .map(Parameter::getName)
+                .filter(Objects::nonNull)
+                .filter(name -> !name.isBlank())
+                .distinct()
+                .sorted()
+                .toList();
+
+        if (queryParameters.isEmpty()) {
+            return null;
+        }
+
+        return "openapi://operations/" + operationId + "{?" + String.join(",", queryParameters) + "}";
     }
 
     private String readHandler(Operation operation, String defaultOperationId) {
@@ -129,7 +156,7 @@ public class OpenApiToManifestGenerator {
         }
 
         root.put("properties", properties);
-        root.put("required", required);
+        root.put("required", required.stream().distinct().sorted().toList());
         return root;
     }
 
@@ -142,18 +169,31 @@ public class OpenApiToManifestGenerator {
             return root;
         }
 
-        responses.forEach((status, response) -> {
-            if (response != null && response.getContent() != null) {
-                response.getContent().forEach((mime, mediaType) -> {
-                    Schema<?> schema = mediaType.getSchema();
-                    if (schema != null) {
-                        root.put("x-first-response-status", status);
-                        root.put("x-first-response-mimeType", mime);
-                        root.put("x-first-response-schema", simplifySchema(schema));
+        responses.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(responseEntry -> {
+                    if (root.containsKey("x-first-response-schema")) {
+                        return;
                     }
+
+                    String status = responseEntry.getKey();
+                    ApiResponse response = responseEntry.getValue();
+                    if (response == null || response.getContent() == null || response.getContent().isEmpty()) {
+                        return;
+                    }
+
+                    response.getContent().entrySet().stream()
+                            .sorted(Map.Entry.comparingByKey())
+                            .filter(mediaEntry -> mediaEntry.getValue() != null && mediaEntry.getValue().getSchema() != null)
+                            .findFirst()
+                            .ifPresent(mediaEntry -> {
+                                MediaType mediaType = mediaEntry.getValue();
+                                Schema<?> schema = mediaType.getSchema();
+                                root.put("x-first-response-status", status);
+                                root.put("x-first-response-mimeType", mediaEntry.getKey());
+                                root.put("x-first-response-schema", simplifySchema(schema));
+                            });
                 });
-            }
-        });
         return root;
     }
 
@@ -174,7 +214,9 @@ public class OpenApiToManifestGenerator {
 
         if (schema.getProperties() != null && !schema.getProperties().isEmpty()) {
             Map<String, Object> props = new LinkedHashMap<>();
-            schema.getProperties().forEach((key, value) -> props.put(String.valueOf(key), simplifySchema((Schema<?>) value)));
+            schema.getProperties().entrySet().stream()
+                    .sorted(Comparator.comparing(entry -> String.valueOf(entry.getKey())))
+                    .forEach(entry -> props.put(String.valueOf(entry.getKey()), simplifySchema((Schema<?>) entry.getValue())));
             result.put("properties", props);
         }
 
@@ -209,5 +251,17 @@ public class OpenApiToManifestGenerator {
 
     private String optional(String value) {
         return value == null ? "" : value;
+    }
+
+    private List<ToolDescriptor> sortTools(List<ToolDescriptor> tools) {
+        return tools.stream()
+                .sorted(Comparator.comparing(tool -> tool.name() != null ? tool.name() : ""))
+                .toList();
+    }
+
+    private List<ResourceDescriptor> sortResources(List<ResourceDescriptor> resources) {
+        return resources.stream()
+                .sorted(Comparator.comparing(resource -> resource.uri() != null ? resource.uri() : ""))
+                .toList();
     }
 }

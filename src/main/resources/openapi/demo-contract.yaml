@@ -44,3 +44,78 @@ paths:
       responses:
         '200':
           description: OK
+  /customers/profile-evaluation:
+    post:
+      operationId: evaluateCustomerProfile
+      summary: Evaluate customer profile
+      description: Evaluates a customer profile using a nested JSON payload.
+      tags: [customers]
+      x-handler: customers.evaluateProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [persona, financialProfile]
+              properties:
+                persona:
+                  type: object
+                  required: [customerId, fullName, age, documents]
+                  properties:
+                    customerId:
+                      type: string
+                    fullName:
+                      type: string
+                    age:
+                      type: integer
+                    contact:
+                      type: object
+                      properties:
+                        email:
+                          type: string
+                        phone:
+                          type: string
+                    documents:
+                      type: array
+                      items:
+                        type: object
+                        required: [type, number]
+                        properties:
+                          type:
+                            type: string
+                            enum: [NATIONAL_ID, PASSPORT, TAX_ID]
+                          number:
+                            type: string
+                          country:
+                            type: string
+                financialProfile:
+                  type: object
+                  required: [monthlyIncome, debtRatio]
+                  properties:
+                    monthlyIncome:
+                      type: number
+                      format: double
+                    debtRatio:
+                      type: number
+                      format: double
+                    hasLatePayments:
+                      type: boolean
+                productPreferences:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      productType:
+                        type: string
+                      priority:
+                        type: integer
+                      constraints:
+                        type: object
+                        additionalProperties: true
+                metadata:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          description: OK
