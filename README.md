@@ -124,6 +124,10 @@ Además, si está habilitado `app.manifest.export-on-startup`, exporta:
 
 - `build/mcp-manifests/mcp.generated.yaml`
 - `build/mcp-manifests/mcp.effective.yaml`
+- `build/mcp-manifests/mcp.lock.yaml`
+
+El archivo `mcp.lock.yaml` se usa en runtime cuando `app.manifest.lock-mode` es `verify` o `frozen`
+para proteger consistencia entre contrato, manifiesto generado y manifiesto efectivo.
 
 ## Forma de trabajo recomendada
 
@@ -132,7 +136,7 @@ El proyecto está diseñado para una iteración corta basada en contrato:
 1. definir o ajustar operaciones en `src/main/resources/openapi/demo-contract.yaml`;
 2. declarar intención funcional en `src/main/resources/mcp-overrides.yaml`;
 3. mapear ejecución en `binding.mode` (declarativo) o, si hace falta lógica custom, en contributors;
-4. ejecutar la aplicación y revisar snapshots exportados;
+4. generar y revisar snapshots en CI/build (o localmente si habilitas `export-on-startup`);
 5. validar desde un cliente MCP contra el endpoint `/mcp`.
 
 Este ciclo separa claramente lo técnico (contrato OpenAPI), lo semántico (overrides) y lo ejecutable (bindings declarativos y/o use cases Spring).
@@ -187,10 +191,37 @@ Cuando se necesita enviar argumentos a un resource, se pueden incluir en el quer
 Archivo: `src/main/resources/application.yml`
 
 - `app.openapi.location`: ubicación del contrato OpenAPI.
-- `app.overrides.location`: ubicación de overrides YAML.
-- `app.manifest.export-on-startup`: habilita exportación automática de snapshots.
+- `app.overrides.location`: ubicación de overrides YAML (opcional).
+- `app.manifest.export-on-startup`: exporta snapshots en startup (solo para uso local/debug).
 - `app.manifest.export-dir`: directorio de salida para manifiestos exportados.
+- `app.manifest.generated-location`: ubicación externa opcional para leer `GeneratedManifest` (si no se define, se genera desde OpenAPI).
+- `app.manifest.effective-location`: ubicación externa opcional para leer `EffectiveManifest` (si no se define, se calcula con merge).
+- `app.manifest.generated-file`: nombre del snapshot del manifiesto generado.
+- `app.manifest.effective-file`: nombre del snapshot del manifiesto efectivo.
+- `app.manifest.lock-file`: nombre del lock manifest.
+- `app.manifest.lock-mode`: `off`, `verify` o `frozen`.
+- `app.manifest.overrides-mode`: `off`, `strict` o `warn`.
 - `spring.ai.mcp.server.streamable-http.mcp-endpoint`: endpoint MCP (`/mcp`).
+
+Reglas prácticas:
+
+- `lock-mode=off`: genera desde OpenAPI en cada inicio y no valida lock.
+- `lock-mode=verify`: genera desde OpenAPI y falla si no coincide con `mcp.lock.yaml`.
+- `lock-mode=frozen`: no relee OpenAPI; usa `mcp.generated.yaml` y valida lock.
+- `generated-location` definido: intenta usar ese generated externo; si no existe o no es legible, genera desde OpenAPI.
+- `effective-location` definido: intenta usar ese effective externo; si no existe o no es legible, calcula el merge.
+- `overrides-mode=off`: desactiva overrides por seguridad.
+- `overrides-mode=strict`: aplica overrides y falla si hay claves huérfanas.
+- `overrides-mode=warn`: aplica overrides válidos y advierte los huérfanos.
+- Si `app.overrides.location` no está definido (o no existe), la app continúa con overrides vacíos.
+
+Modelo stateless recomendado:
+
+- Generar `mcp.generated.yaml`, `mcp.effective.yaml` y `mcp.lock.yaml` en CI/build.
+- Para generar lock por primera vez: `lock-mode=off` + `export-on-startup=true` en el job de build.
+- Desplegar esos artefactos como inmutables con la imagen o config de despliegue.
+- Mantener `export-on-startup=false` en pods para evitar escritura runtime.
+- En producción usar `lock-mode=verify` (o `frozen` si no quieres regeneración runtime).
 
 ## Ejecución local
 

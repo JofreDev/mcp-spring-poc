@@ -48,6 +48,13 @@ public class AppManifestProperties {
     public static class Manifest {
         private boolean exportOnStartup;
         private String exportDir = "build/mcp-manifests";
+        private String generatedLocation;
+        private String effectiveLocation;
+        private String generatedFile = "mcp.generated.yaml";
+        private String effectiveFile = "mcp.effective.yaml";
+        private String lockFile = "mcp.lock.yaml";
+        private String lockMode = "off";
+        private String overridesMode = "strict";
 
         public boolean isExportOnStartup() {
             return exportOnStartup;
@@ -63,6 +70,62 @@ public class AppManifestProperties {
 
         public void setExportDir(String exportDir) {
             this.exportDir = exportDir;
+        }
+
+        public String getGeneratedLocation() {
+            return generatedLocation;
+        }
+
+        public void setGeneratedLocation(String generatedLocation) {
+            this.generatedLocation = generatedLocation;
+        }
+
+        public String getEffectiveLocation() {
+            return effectiveLocation;
+        }
+
+        public void setEffectiveLocation(String effectiveLocation) {
+            this.effectiveLocation = effectiveLocation;
+        }
+
+        public String getGeneratedFile() {
+            return generatedFile;
+        }
+
+        public void setGeneratedFile(String generatedFile) {
+            this.generatedFile = generatedFile;
+        }
+
+        public String getEffectiveFile() {
+            return effectiveFile;
+        }
+
+        public void setEffectiveFile(String effectiveFile) {
+            this.effectiveFile = effectiveFile;
+        }
+
+        public String getLockFile() {
+            return lockFile;
+        }
+
+        public void setLockFile(String lockFile) {
+            this.lockFile = lockFile;
+        }
+
+        public String getLockMode() {
+            return lockMode;
+        }
+
+        public void setLockMode(String lockMode) {
+            this.lockMode = lockMode;
+        }
+
+        public String getOverridesMode() {
+            return overridesMode;
+        }
+
+        public void setOverridesMode(String overridesMode) {
+            this.overridesMode = overridesMode;
         }
     }
 }

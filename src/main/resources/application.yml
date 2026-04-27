@@ -26,5 +26,12 @@ app:
   overrides:
     location: classpath:mcp-overrides.yaml
   manifest:
-    export-on-startup: true
+    export-on-startup: false
     export-dir: build/mcp-manifests
+    # generated-location: classpath:manifests/mcp.generated.yaml
+    # effective-location: classpath:manifests/mcp.effective.yaml
+    generated-file: mcp.generated.yaml
+    effective-file: mcp.effective.yaml
+    lock-file: mcp.lock.yaml
+    lock-mode: off
+    overrides-mode: strict
